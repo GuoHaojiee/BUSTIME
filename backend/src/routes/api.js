@@ -6,6 +6,10 @@ const stopController = require('../controllers/stopController');
  * API 路由定义
  */
 
+// 获取常用站点
+// GET /api/frequent-stops
+router.get('/frequent-stops', stopController.getFrequentStops.bind(stopController));
+
 // 搜索站点
 // GET /api/search?q=关键词
 router.get('/search', stopController.searchStops.bind(stopController));

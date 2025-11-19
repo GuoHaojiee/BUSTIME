@@ -69,6 +69,28 @@ class StopController {
   }
 
   /**
+   * 获取常用站点
+   */
+  async getFrequentStops(req, res) {
+    try {
+      const frequentStops = require('../data/frequentStops.json');
+      logger.info('获取常用站点列表');
+
+      res.json({
+        success: true,
+        data: frequentStops.stops
+      });
+    } catch (error) {
+      logger.error('获取常用站点失败:', error);
+      res.status(500).json({
+        success: false,
+        message: '获取常用站点失败',
+        error: config.server.env === 'development' ? error.message : undefined
+      });
+    }
+  }
+
+  /**
    * 搜索站点
    */
   async searchStops(req, res) {
