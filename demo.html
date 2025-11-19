@@ -118,12 +118,6 @@
     .hero-title {
       font-size: 34px;
       font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .hero-subtitle {
-      font-size: 18px;
-      color: rgba(255, 255, 255, 0.9);
       margin-bottom: 24px;
     }
 
@@ -142,48 +136,6 @@
     .hero-cta span:last-child {
       font-size: 26px;
       opacity: 0.8;
-    }
-
-    .search-pill {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .pill-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 20px;
-      background: rgba(10, 132, 255, 0.12);
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 26px;
-    }
-
-    .pill-copy {
-      flex: 1;
-    }
-
-    .pill-title {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .pill-hint {
-      font-size: 14px;
-      color: var(--text-secondary);
-    }
-
-    .pill-action {
-      padding: 10px 20px;
-      border-radius: 22px;
-      background: var(--primary-weak);
-      color: var(--primary);
-      font-weight: 600;
-      font-size: 14px;
     }
 
     .status-chip {
@@ -461,71 +413,76 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
-    .arrival-card {
-      border-radius: 28px;
-      padding: 24px;
+    .arrival-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-radius: 24px;
       background: var(--surface);
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
-    .route-header {
+    .route-info {
+      max-width: 70%;
       display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    .route-chip {
-      padding: 8px 24px;
-      border-radius: 999px;
-      background: var(--primary-weak);
-      color: var(--primary);
-      font-weight: 600;
-      font-size: 14px;
+    .route-number {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
     }
 
     .route-name {
-      flex: 1;
-      font-size: 16px;
+      font-size: 14px;
       color: var(--text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .arrival-pill-wrap {
+    .arrival-times {
       display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
+      align-items: center;
+      gap: 10px;
     }
 
-    .arrival-pill {
-      min-width: 140px;
-      padding: 16px;
-      border-radius: 24px;
+    .arrival-chip {
+      min-width: 82px;
+      padding: 12px 14px;
+      border-radius: 18px;
       background: rgba(15, 23, 42, 0.04);
       display: flex;
-      flex-direction: column;
+      align-items: baseline;
       gap: 6px;
-    }
-
-    .arrival-pill.highlight {
-      background: var(--primary-weak);
-      color: var(--primary);
-      box-shadow: 0 12px 28px rgba(10, 132, 255, 0.18);
-    }
-
-    .arrival-time {
-      font-size: 20px;
       font-weight: 600;
+      color: var(--text-primary);
     }
 
-    .arrival-direction {
-      font-size: 13px;
-      color: inherit;
-      opacity: 0.8;
+    .arrival-chip:first-child {
+      background: rgba(10, 132, 255, 0.12);
+      color: var(--primary);
+      box-shadow: 0 10px 22px rgba(10, 132, 255, 0.16);
+    }
+
+    .arrival-minute {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .arrival-unit {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .arrival-empty {
+      font-size: 14px;
+      color: var(--text-tertiary);
     }
 
     .loading {
@@ -601,8 +558,7 @@
         <div id="homeView">
           <div class="hero-card glass-card">
             <div class="hero-badge">BUSTIME</div>
-            <div class="hero-title">莫斯科公交 · 实时到站</div>
-            <div class="hero-subtitle">像 iOS 一样顺滑的体验</div>
+            <div class="hero-title">莫斯科公交</div>
             <div class="hero-cta" onclick="showSearchView()">
               <span>⌕ 搜索站点</span>
               <span>›</span>
@@ -611,17 +567,6 @@
 
           <div class="status-chip" id="apiStatus">
             ✅ 后端服务运行正常
-          </div>
-
-          <div class="card" onclick="showSearchView()">
-            <div class="search-pill">
-              <div class="pill-icon">⌕</div>
-              <div class="pill-copy">
-                <div class="pill-title">搜索公交站点</div>
-                <div class="pill-hint">支持中文 / 英文 / 俄文</div>
-              </div>
-              <div class="pill-action">前往</div>
-            </div>
           </div>
 
           <div class="section-block">
@@ -650,11 +595,10 @@
           <div id="searchResults" class="result-list"></div>
           <div id="searchLoading" class="loading" style="display: none;">
             <div class="spinner"></div>
-            <div>正在为你寻找站点...</div>
+            <div>由于技术原因，这里要施法 30 秒，请耐心等候...</div>
           </div>
           <div class="tips-card">
             <div class="tip-title">搜索提示</div>
-            <div class="tip-item">• 支持俄文 / 中文 / 英文</div>
             <div class="tip-item">• 至少输入 2 个字符</div>
             <div class="tip-item">• 输入站点附近地标也可</div>
           </div>
@@ -851,7 +795,7 @@
       document.getElementById('arrivalsList').innerHTML = `
         <div class="loading">
           <div class="spinner"></div>
-          <div>加载中...</div>
+          <div>由于技术原因，这里要施法 30 秒，请耐心等候...</div>
         </div>
       `;
 
@@ -871,20 +815,30 @@
             `;
           } else {
             data.data.arrivals.forEach(route => {
+              const topArrivals = (route.arrivals || []).slice(0, 3);
+              const timesHtml = topArrivals.length
+                ? `
+                  <div class="arrival-times">
+                    ${topArrivals.map(arrival => {
+                      const imminent = arrival.minutes === 0;
+                      return `
+                        <div class="arrival-chip">
+                          <span class="arrival-minute">${imminent ? '即将' : arrival.minutes}</span>
+                          ${imminent ? '' : '<span class="arrival-unit">分钟</span>'}
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                `
+                : `<div class="arrival-empty">暂无</div>`;
+
               html += `
-                <div class="arrival-card">
-                  <div class="route-header">
-                    <div class="route-chip">${route.routeNumber || 'N/A'}</div>
-                    <div class="route-name">${route.routeName || ''}</div>
+                <div class="arrival-row">
+                  <div class="route-info">
+                    <div class="route-number">${route.routeNumber || 'N/A'}</div>
+                    ${route.routeName ? `<div class="route-name">${route.routeName}</div>` : ''}
                   </div>
-                  <div class="arrival-pill-wrap">
-                    ${(route.arrivals || []).map((arrival, index) => `
-                      <div class="arrival-pill ${index === 0 ? 'highlight' : ''}">
-                        <div class="arrival-time">${arrival.minutes === 0 ? '即将到站' : arrival.minutes + ' 分钟'}</div>
-                        ${arrival.direction ? `<div class="arrival-direction">→ ${arrival.direction}</div>` : ''}
-                      </div>
-                    `).join('')}
-                  </div>
+                  ${timesHtml}
                 </div>
               `;
             });

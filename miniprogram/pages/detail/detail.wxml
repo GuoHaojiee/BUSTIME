@@ -41,29 +41,23 @@
     <view
       wx:for="{{arrivals}}"
       wx:key="routeNumber"
-      class="arrival-card card"
+      class="arrival-row card"
     >
-      <view class="route-header">
-        <view class="route-chip">{{item.routeNumber}}</view>
-        <view class="route-name">{{item.routeName}}</view>
+      <view class="route-info">
+        <view class="route-number">{{item.routeNumber}}</view>
+        <view wx:if="{{item.routeName}}" class="route-name">{{item.routeName}}</view>
       </view>
-      <view class="arrival-times">
+      <view class="arrival-times" wx:if="{{item.upcomingArrivals.length > 0}}">
         <view
-          wx:for="{{item.arrivals}}"
-          wx:for-item="arrival"
-          wx:for-index="arrivalIndex"
+          wx:for="{{item.upcomingArrivals}}"
           wx:key="vehicleId"
-          class="arrival-pill {{arrivalIndex === 0 ? 'primary' : ''}}"
+          class="arrival-chip"
         >
-          <view class="arrival-time">{{arrival.minutes}}分钟</view>
-          <view wx:if="{{arrival.direction}}" class="arrival-direction">
-            → {{arrival.direction}}
-          </view>
-        </view>
-        <view wx:if="{{item.arrivals.length === 0}}" class="no-arrivals">
-          暂无到站信息
+          <text class="arrival-minute">{{item.minutes === 0 ? '即将' : item.minutes}}</text>
+          <text wx:if="{{item.minutes !== 0}}" class="arrival-unit">分钟</text>
         </view>
       </view>
+      <view wx:else class="arrival-empty">暂无</view>
     </view>
   </view>
 

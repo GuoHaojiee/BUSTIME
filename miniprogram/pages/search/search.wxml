@@ -23,7 +23,7 @@
     <!-- 加载状态 -->
     <view wx:if="{{loading}}" class="loading">
       <view class="loading-spinner"></view>
-      <text>正在为你寻找站点...</text>
+      <text>由于技术原因，这里要施法 30 秒，请耐心等候...</text>
     </view>
 
     <!-- 搜索结果 -->

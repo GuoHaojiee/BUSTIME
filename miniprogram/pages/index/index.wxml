@@ -4,25 +4,12 @@
   <view class="home-hero glass-card">
     <view class="hero-meta">
       <view class="hero-badge">Bustime</view>
-      <view class="hero-title">莫斯科公交 · 实时到站</view>
-      <view class="hero-subtitle">像 iOS 一样顺滑的体验</view>
+      <view class="hero-title">莫斯科公交</view>
     </view>
     <view class="hero-cta" bindtap="goToSearch">
       <text class="cta-icon">🔍</text>
       <text class="cta-label">立即搜索站点</text>
       <text class="cta-arrow">›</text>
-    </view>
-  </view>
-
-  <!-- 搜索入口 -->
-  <view class="search-card card" bindtap="goToSearch">
-    <view class="search-pill">
-      <text class="search-icon">⌕</text>
-      <view class="search-copy">
-        <text class="search-title">搜索公交站点</text>
-        <text class="search-hint">支持中文 / 英文 / 俄文</text>
-      </view>
-      <view class="search-button">前往</view>
     </view>
   </view>
 

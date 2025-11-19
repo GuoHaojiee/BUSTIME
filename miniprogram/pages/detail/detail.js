@@ -64,6 +64,11 @@ Page({
       const arrivals = res.data.arrivals || [];
       const updateTime = res.data.updateTime || new Date().toISOString();
 
+      const normalizedArrivals = arrivals.map(item => ({
+        ...item,
+        upcomingArrivals: (item.arrivals || []).slice(0, 3)
+      }));
+
       // 更新站点名称（如果API返回了更完整的信息）
       if (stopInfo.name && !this.data.stopName) {
         this.setData({
@@ -74,7 +79,7 @@ Page({
 
       this.setData({
         stopInfo,
-        arrivals,
+        arrivals: normalizedArrivals,
         updateTime: util.formatTime(new Date(updateTime), 'HH:mm:ss'),
         loading: false
       });
