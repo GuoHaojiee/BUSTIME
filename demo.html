@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>莫斯科公交查询 - 演示页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #F7F8FA;
+            color: #323233;
+        }
+
+        .phone-frame {
+            max-width: 375px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-bar {
+            height: 20px;
+            background: linear-gradient(to bottom, #f8f8f8, #e8e8e8);
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            color: #666;
+        }
+
+        .header {
+            background: #1989FA;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .container {
+            padding: 20px;
+            min-height: 600px;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #323233;
+        }
+
+        .search-box input::placeholder {
+            color: #C8C9CC;
+        }
+
+        .search-icon {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #323233;
+            margin-bottom: 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .stop-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .stop-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .stop-info {
+            flex: 1;
+        }
+
+        .stop-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #323233;
+            margin-bottom: 4px;
+        }
+
+        .stop-address {
+            font-size: 12px;
+            color: #969799;
+        }
+
+        .arrow-icon {
+            font-size: 20px;
+            color: #C8C9CC;
+        }
+
+        .route-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .route-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #EBEDF0;
+        }
+
+        .route-icon {
+            font-size: 20px;
+            margin-right: 12px;
+        }
+
+        .route-number {
+            font-size: 16px;
+            font-weight: bold;
+            color: #323233;
+            margin-bottom: 2px;
+        }
+
+        .route-name {
+            font-size: 12px;
+            color: #969799;
+        }
+
+        .arrival-times {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .time-badge {
+            background: #F7F8FA;
+            border-radius: 8px;
+            padding: 10px 15px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .time-badge.first {
+            background: #1989FA;
+            color: white;
+        }
+
+        .time-value {
+            font-size: 24px;
+            font-weight: bold;
+            display: block;
+        }
+
+        .time-unit {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #969799;
+        }
+
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: #1989FA;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn:active {
+            opacity: 0.6;
+        }
+
+        .tab-bar {
+            display: flex;
+            background: white;
+            border-top: 1px solid #EBEDF0;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            color: #7A7E83;
+            font-size: 11px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .tab-item.active {
+            color: #1989FA;
+        }
+
+        .tab-icon {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #969799;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #E5E5E5;
+            border-top-color: #1989FA;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .update-time {
+            font-size: 11px;
+            color: #969799;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .api-status {
+            background: #E8F5FF;
+            color: #1989FA;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>09:30</span>
+            <span>📶 🔋</span>
+        </div>
+
+        <!-- 顶部导航 -->
+        <div class="header">莫斯科公交查询</div>
+
+        <!-- 主内容区 -->
+        <div class="container" id="app">
+            <!-- API 状态 -->
+            <div class="api-status" id="apiStatus">
+                ✅ 后端服务运行正常
+            </div>
+
+            <!-- 视图切换 -->
+            <div id="homeView">
+                <!-- 搜索框 -->
+                <div class="search-box" onclick="showSearchView()">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="搜索公交站点..." readonly>
+                </div>
+
+                <!-- 我的收藏 -->
+                <div class="section-title">我的收藏</div>
+
+                <div id="favoritesList">
+                    <!-- 空状态 -->
+                    <div class="empty-state">
+                        <div class="empty-icon">⭐</div>
+                        <div class="empty-text">还没有收藏任何站点</div>
+                        <button class="btn" onclick="showSearchView()">搜索站点</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 搜索视图 -->
+            <div id="searchView" style="display: none;">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" placeholder="输入站点名称（俄文）..." onkeyup="performSearch(event)">
+                </div>
+
+                <div id="searchResults"></div>
+                <div id="searchLoading" style="display: none;">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>搜索中...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详情视图 -->
+            <div id="detailView" style="display: none;">
+                <div class="card">
+                    <div class="stop-item">
+                        <span class="stop-icon">📍</span>
+                        <div class="stop-info">
+                            <div class="stop-name" id="detailStopName">-</div>
+                            <div class="stop-address" id="detailStopAddress">-</div>
+                        </div>
+                        <span class="arrow-icon" onclick="toggleFavorite()">☆</span>
+                    </div>
+                </div>
+
+                <div class="section-title">实时到站信息</div>
+
+                <div id="arrivalsList"></div>
+
+                <div class="update-time" id="updateTime">-</div>
+            </div>
+        </div>
+
+        <!-- 底部标签栏 -->
+        <div class="tab-bar">
+            <div class="tab-item active" onclick="switchTab('home')">
+                <span class="tab-icon">🏠</span>
+                <span>首页</span>
+            </div>
+            <div class="tab-item" onclick="switchTab('favorites')">
+                <span class="tab-icon">⭐</span>
+                <span>收藏</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let currentView = 'home';
+
+        // 检查API状态
+        async function checkAPIStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                const data = await res.json();
+                document.getElementById('apiStatus').innerHTML =
+                    `✅ 后端服务运行正常 (运行时间: ${Math.floor(data.uptime)}秒)`;
+            } catch (error) {
+                document.getElementById('apiStatus').innerHTML =
+                    '❌ 无法连接到后端服务';
+                document.getElementById('apiStatus').style.background = '#FFEBEB';
+                document.getElementById('apiStatus').style.color = '#EE0A24';
+            }
+        }
+
+        // 切换标签
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.closest('.tab-item').classList.add('active');
+
+            if (tab === 'home') {
+                showHomeView();
+            }
+        }
+
+        // 显示首页
+        function showHomeView() {
+            document.getElementById('homeView').style.display = 'block';
+            document.getElementById('searchView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'none';
+            currentView = 'home';
+        }
+
+        // 显示搜索页
+        function showSearchView() {
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('searchView').style.display = 'block';
+            document.getElementById('detailView').style.display = 'none';
+            currentView = 'search';
+            setTimeout(() => document.getElementById('searchInput').focus(), 100);
+        }
+
+        // 显示详情页
+        function showDetailView(stop) {
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('searchView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'block';
+            currentView = 'detail';
+
+            document.getElementById('detailStopName').textContent = stop.name;
+            document.getElementById('detailStopAddress').textContent = stop.address || '';
+
+            loadStopDetail(stop.id);
+        }
+
+        // 搜索
+        let searchTimeout;
+        async function performSearch(event) {
+            const keyword = event.target.value.trim();
+
+            if (keyword.length < 2) {
+                document.getElementById('searchResults').innerHTML = '';
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                document.getElementById('searchLoading').style.display = 'block';
+                document.getElementById('searchResults').innerHTML = '';
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(keyword)}`);
+                    const data = await res.json();
+
+                    document.getElementById('searchLoading').style.display = 'none';
+
+                    if (data.success && data.data.length > 0) {
+                        let html = '<div class="section-title">搜索结果</div>';
+                        data.data.forEach(stop => {
+                            html += `
+                                <div class="card" onclick='showDetailView(${JSON.stringify(stop)})'>
+                                    <div class="stop-item">
+                                        <span class="stop-icon">📍</span>
+                                        <div class="stop-info">
+                                            <div class="stop-name">${stop.name}</div>
+                                            <div class="stop-address">${stop.address || ''}</div>
+                                        </div>
+                                        <span class="arrow-icon">›</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        document.getElementById('searchResults').innerHTML = html;
+                    } else {
+                        document.getElementById('searchResults').innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <div class="empty-text">未找到相关站点</div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    document.getElementById('searchLoading').style.display = 'none';
+                    document.getElementById('searchResults').innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">⚠️</div>
+                            <div class="empty-text">搜索失败: ${error.message}</div>
+                        </div>
+                    `;
+                }
+            }, 500);
+        }
+
+        // 加载站点详情
+        async function loadStopDetail(stopId) {
+            document.getElementById('arrivalsList').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>加载中...</div>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/stop/${stopId}`);
+                const data = await res.json();
+
+                if (data.success && data.data.arrivals) {
+                    let html = '';
+
+                    if (data.data.arrivals.length === 0) {
+                        html = `
+                            <div class="empty-state">
+                                <div class="empty-icon">🚌</div>
+                                <div class="empty-text">暂无到站信息</div>
+                            </div>
+                        `;
+                    } else {
+                        data.data.arrivals.forEach(route => {
+                            html += `
+                                <div class="route-card">
+                                    <div class="route-header">
+                                        <span class="route-icon">🚌</span>
+                                        <div style="flex: 1;">
+                                            <div class="route-number">${route.routeNumber || 'N/A'}</div>
+                                            <div class="route-name">${route.routeName || ''}</div>
+                                        </div>
+                                    </div>
+                                    <div class="arrival-times">
+                                        ${(route.arrivals || []).map((arrival, index) => `
+                                            <div class="time-badge ${index === 0 ? 'first' : ''}">
+                                                <span class="time-value">${arrival.minutes || 0}</span>
+                                                <span class="time-unit">分钟</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    document.getElementById('arrivalsList').innerHTML = html;
+
+                    const updateTime = new Date(data.data.updateTime).toLocaleTimeString('zh-CN');
+                    document.getElementById('updateTime').textContent = `更新时间: ${updateTime}`;
+                } else {
+                    throw new Error(data.message || '获取数据失败');
+                }
+            } catch (error) {
+                document.getElementById('arrivalsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-text">加载失败: ${error.message}</div>
+                        <button class="btn" onclick="loadStopDetail('${stopId}')">重试</button>
+                    </div>
+                `;
+            }
+        }
+
+        function toggleFavorite() {
+            alert('收藏功能需要在微信小程序中使用');
+        }
+
+        // 初始化
+        checkAPIStatus();
+        setInterval(checkAPIStatus, 10000);
+    </script>
+</body>
+</html>

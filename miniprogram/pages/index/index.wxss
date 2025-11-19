@@ -1,0 +1,120 @@
+/* pages/index/index.wxss */
+
+/* 搜索框 */
+.search-box {
+  padding: 20rpx;
+  background-color: #fff;
+  margin-bottom: 20rpx;
+}
+
+.search-input {
+  display: flex;
+  align-items: center;
+  background-color: #F7F8FA;
+  border-radius: 32rpx;
+  padding: 20rpx 30rpx;
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.search-placeholder {
+  font-size: 28rpx;
+  color: #C8C9CC;
+}
+
+/* 分节 */
+.section {
+  margin-bottom: 40rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #323233;
+  padding: 20rpx;
+  margin-bottom: 10rpx;
+}
+
+/* 收藏列表 */
+.favorite-list {
+  padding: 0 20rpx;
+}
+
+.favorite-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  transition: all 0.3s;
+}
+
+.favorite-item:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+.favorite-content {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.stop-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.stop-info {
+  flex: 1;
+}
+
+.stop-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #323233;
+  margin-bottom: 8rpx;
+}
+
+.stop-address {
+  font-size: 24rpx;
+  color: #969799;
+}
+
+.favorite-actions {
+  margin-left: 20rpx;
+}
+
+.delete-btn {
+  font-size: 24rpx;
+  color: #EE0A24;
+  padding: 10rpx 20rpx;
+}
+
+/* 浮动按钮 */
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 100rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #1989FA;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(25, 137, 250, 0.4);
+  z-index: 100;
+}
+
+.fab text {
+  font-size: 60rpx;
+  color: #fff;
+  line-height: 1;
+}
+
+.fab:active {
+  transform: scale(0.95);
+}

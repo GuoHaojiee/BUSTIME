@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "搜索站点",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": false,
+  "usingComponents": {}
+}

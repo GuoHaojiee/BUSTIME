@@ -1,0 +1,118 @@
+/* pages/favorites/favorites.wxss */
+
+/* 头部操作栏 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1px solid #EBEDF0;
+  margin-bottom: 20rpx;
+}
+
+.action-left {
+  flex: 1;
+}
+
+.favorites-count {
+  font-size: 28rpx;
+  color: #969799;
+}
+
+.action-right {
+  display: flex;
+  gap: 30rpx;
+}
+
+.action-btn {
+  font-size: 28rpx;
+  color: #1989FA;
+  padding: 0 10rpx;
+}
+
+.action-btn.danger {
+  color: #EE0A24;
+}
+
+/* 收藏列表 */
+.favorites-list {
+  padding: 0 20rpx 20rpx;
+}
+
+.favorite-item {
+  margin-bottom: 20rpx;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.favorite-item.editing {
+  padding-right: 0;
+}
+
+.item-content {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  transition: all 0.3s;
+}
+
+.favorite-item:not(.editing) .item-content:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+.stop-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+}
+
+.stop-info {
+  flex: 1;
+}
+
+.stop-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #323233;
+  margin-bottom: 8rpx;
+}
+
+.stop-address {
+  font-size: 24rpx;
+  color: #969799;
+  margin-bottom: 4rpx;
+}
+
+.added-time {
+  font-size: 20rpx;
+  color: #C8C9CC;
+  margin-top: 4rpx;
+}
+
+.arrow-icon {
+  font-size: 40rpx;
+  color: #C8C9CC;
+  margin-left: 20rpx;
+}
+
+.favorite-item.editing .arrow-icon {
+  display: none;
+}
+
+/* 编辑模式下的操作按钮 */
+.item-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 24rpx 24rpx;
+  border-top: 1px solid #EBEDF0;
+  padding-top: 16rpx;
+}
+
+.delete-btn {
+  font-size: 24rpx;
+  color: #EE0A24;
+  padding: 10rpx 24rpx;
+  border: 1px solid #EE0A24;
+  border-radius: 8rpx;
+}

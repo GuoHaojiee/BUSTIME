@@ -1,0 +1,60 @@
+<!--pages/favorites/favorites.wxml-->
+<view class="container">
+  <!-- 头部操作栏 -->
+  <view wx:if="{{favorites.length > 0}}" class="header-actions">
+    <view class="action-left">
+      <text class="favorites-count">共 {{favorites.length}} 个收藏</text>
+    </view>
+    <view class="action-right">
+      <text class="action-btn" bindtap="toggleEdit">
+        {{isEditing ? '完成' : '编辑'}}
+      </text>
+      <text wx:if="{{isEditing}}" class="action-btn danger" bindtap="clearAllFavorites">
+        清空
+      </text>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{favorites.length === 0}}" class="empty-state">
+    <view class="empty-icon">⭐</view>
+    <view class="empty-text">还没有收藏任何站点</view>
+    <view class="empty-hint">在站点详情页点击星标即可收藏</view>
+    <button class="btn btn-primary mt-20" bindtap="goToSearch">
+      搜索站点
+    </button>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view wx:else class="favorites-list">
+    <view
+      wx:for="{{favorites}}"
+      wx:key="id"
+      class="favorite-item card {{isEditing ? 'editing' : ''}}"
+    >
+      <view class="item-content" bindtap="viewStopDetail" data-stop="{{item}}">
+        <view class="stop-icon">📍</view>
+        <view class="stop-info">
+          <view class="stop-name">{{item.name}}</view>
+          <view class="stop-address">{{item.address}}</view>
+          <view wx:if="{{item.addedAt}}" class="added-time">
+            收藏于 {{item.addedAt}}
+          </view>
+        </view>
+        <view class="arrow-icon">›</view>
+      </view>
+
+      <!-- 编辑模式下的删除按钮 -->
+      <view wx:if="{{isEditing}}" class="item-actions">
+        <view
+          class="delete-btn"
+          catchtap="deleteFavorite"
+          data-stop-id="{{item.id}}"
+          data-stop-name="{{item.name}}"
+        >
+          删除
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

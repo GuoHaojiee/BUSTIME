@@ -1,0 +1,21 @@
+const express = require('express');
+const router = express.Router();
+const stopController = require('../controllers/stopController');
+
+/**
+ * API 路由定义
+ */
+
+// 搜索站点
+// GET /api/search?q=关键词
+router.get('/search', stopController.searchStops.bind(stopController));
+
+// 获取站点实时到站信息
+// GET /api/stop/:stopId
+router.get('/stop/:stopId', stopController.getStopInfo.bind(stopController));
+
+// 清除缓存（管理接口）
+// DELETE /api/cache?pattern=search
+router.delete('/cache', stopController.clearCache.bind(stopController));
+
+module.exports = router;

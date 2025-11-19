@@ -1,0 +1,15 @@
+saves
+Errors
+.idea
+__pycache__
+Dockerfile.save
+.Dockerfile.swp
+launch
+*.csv
+output*
+outdata
+output.*
+test_results.xml
+debug
+ytproxy-network.log
+plots
