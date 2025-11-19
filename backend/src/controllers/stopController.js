@@ -3,7 +3,6 @@ const yandexSearchService = require('../services/yandexSearchService');
 const localStopsDatabase = require('../services/localStopsDatabase');
 const puppeteerService = require('../services/puppeteerService');
 const mockDataService = require('../services/mockDataService');
-const cacheService = require('../services/cacheService');
 const validator = require('../utils/validator');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -38,19 +37,6 @@ class StopController {
 
       logger.info(`查询站点: ${sanitizedStopId}`);
 
-      // 检查缓存
-      const cacheKey = cacheService.generateKey('stop', sanitizedStopId);
-      const cached = await cacheService.get(cacheKey);
-
-      if (cached) {
-        logger.info(`缓存命中: ${sanitizedStopId}`);
-        return res.json({
-          success: true,
-          data: cached,
-          fromCache: true
-        });
-      }
-
       // 优先尝试从模拟数据获取
       let data = mockDataService.getStopArrivals(sanitizedStopId);
 
@@ -68,13 +54,9 @@ class StopController {
         logger.info(`返回模拟数据: ${sanitizedStopId}`);
       }
 
-      // 缓存数据
-      await cacheService.set(cacheKey, data, config.cache.stopArrivals);
-
       res.json({
         success: true,
-        data,
-        fromCache: false
+        data
       });
     } catch (error) {
       logger.error('获取站点信息失败:', error);
@@ -105,19 +87,6 @@ class StopController {
       const keyword = validation.keyword;
       logger.info(`搜索站点: ${keyword}`);
 
-      // 检查缓存
-      const cacheKey = cacheService.generateKey('search', keyword);
-      const cached = await cacheService.get(cacheKey);
-
-      if (cached) {
-        logger.info(`搜索缓存命中: ${keyword}`);
-        return res.json({
-          success: true,
-          data: cached,
-          fromCache: true
-        });
-      }
-
       // 优先使用本地数据库搜索（最快，最可靠）
       logger.info(`优先使用本地数据库搜索: ${keyword}`);
       let stops = localStopsDatabase.searchStops(keyword);
@@ -140,51 +109,15 @@ class StopController {
         }
       }
 
-      // 缓存结果
-      await cacheService.set(cacheKey, stops, config.cache.searchResults);
-
       res.json({
         success: true,
-        data: stops,
-        fromCache: false
+        data: stops
       });
     } catch (error) {
       logger.error('搜索站点失败:', error);
       res.status(500).json({
         success: false,
         message: '搜索失败',
-        error: config.server.env === 'development' ? error.message : undefined
-      });
-    }
-  }
-
-  /**
-   * 清除缓存（管理接口）
-   */
-  async clearCache(req, res) {
-    try {
-      const { pattern } = req.query;
-
-      if (pattern) {
-        const count = await cacheService.deleteByPattern(`bustime:${pattern}:*`);
-        logger.info(`清除缓存: ${pattern}, 共 ${count} 条`);
-        res.json({
-          success: true,
-          message: `已清除 ${count} 条缓存`
-        });
-      } else {
-        const count = await cacheService.deleteByPattern('bustime:*');
-        logger.info(`清除所有缓存, 共 ${count} 条`);
-        res.json({
-          success: true,
-          message: `已清除所有缓存，共 ${count} 条`
-        });
-      }
-    } catch (error) {
-      logger.error('清除缓存失败:', error);
-      res.status(500).json({
-        success: false,
-        message: '清除缓存失败',
         error: config.server.env === 'development' ? error.message : undefined
       });
     }

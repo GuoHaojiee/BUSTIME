@@ -10,21 +10,6 @@ module.exports = {
     }
   },
 
-  // Redis 配置
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT, 10) || 6379,
-    password: process.env.REDIS_PASSWORD || undefined,
-    db: 0
-  },
-
-  // 缓存配置（秒）
-  cache: {
-    stopArrivals: parseInt(process.env.CACHE_STOP_ARRIVALS, 10) || 30,
-    searchResults: parseInt(process.env.CACHE_SEARCH_RESULTS, 10) || 300,
-    stopInfo: parseInt(process.env.CACHE_STOP_INFO, 10) || 86400
-  },
-
   // Puppeteer 配置
   puppeteer: {
     headless: process.env.PUPPETEER_HEADLESS !== 'false',

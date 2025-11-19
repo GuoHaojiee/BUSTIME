@@ -178,10 +178,6 @@ app.get('/', (req, res) => {
             <span>${config.server.env}</span>
         </div>
         <div class="status-item">
-            <span>缓存</span>
-            <span class="badge badge-warning">内存缓存 (Redis未连接)</span>
-        </div>
-        <div class="status-item">
             <span>Yandex集成</span>
             <span class="badge badge-success">已修复 ✅</span>
         </div>
@@ -213,12 +209,6 @@ app.get('/', (req, res) => {
         <br><br>
         <strong>示例（真实Yandex数据，需等待30秒）：</strong>
         <a href="/api/stop/stop__9644561" target="_blank">→ /api/stop/stop__9644561</a>
-    </div>
-
-    <div class="endpoint">
-        <h3><span class="method method-delete">DELETE</span> 清除缓存</h3>
-        <code>DELETE /api/cache?pattern=search</code>
-        <p>清除缓存数据（管理接口）</p>
     </div>
 
     <div class="footer">
@@ -270,10 +260,6 @@ const gracefulShutdown = async () => {
       // 关闭 Puppeteer
       const puppeteerService = require('./services/puppeteerService');
       await puppeteerService.close();
-
-      // 关闭 Redis
-      const cacheService = require('./services/cacheService');
-      await cacheService.close();
 
       logger.info('所有服务已关闭');
       process.exit(0);
