@@ -1,23 +1,42 @@
 <!--pages/index/index.wxml-->
-<view class="container">
-  <!-- 搜索框 -->
-  <view class="search-box" bindtap="goToSearch">
-    <view class="search-input">
-      <text class="search-icon">🔍</text>
-      <text class="search-placeholder">搜索公交站点...</text>
+<view class="container home-screen">
+  <!-- 英雄区 -->
+  <view class="home-hero glass-card">
+    <view class="hero-meta">
+      <view class="hero-badge">Bustime</view>
+      <view class="hero-title">莫斯科公交 · 实时到站</view>
+      <view class="hero-subtitle">像 iOS 一样顺滑的体验</view>
+    </view>
+    <view class="hero-cta" bindtap="goToSearch">
+      <text class="cta-icon">🔍</text>
+      <text class="cta-label">立即搜索站点</text>
+      <text class="cta-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 搜索入口 -->
+  <view class="search-card card" bindtap="goToSearch">
+    <view class="search-pill">
+      <text class="search-icon">⌕</text>
+      <view class="search-copy">
+        <text class="search-title">搜索公交站点</text>
+        <text class="search-hint">支持中文 / 英文 / 俄文</text>
+      </view>
+      <view class="search-button">前往</view>
     </view>
   </view>
 
   <!-- 收藏列表 -->
-  <view class="section">
-    <view class="section-title">我的收藏</view>
+  <view class="section favorites-section">
+    <view class="section-heading">我的收藏</view>
 
     <!-- 空状态 -->
-    <view wx:if="{{favorites.length === 0}}" class="empty-state">
+    <view wx:if="{{favorites.length === 0}}" class="empty-state inline-card">
       <view class="empty-icon">⭐</view>
-      <view class="empty-text">还没有收藏任何站点</view>
-      <button class="btn btn-primary mt-20" bindtap="goToSearch">
-        搜索站点
+      <view class="empty-text">还没有收藏站点</view>
+      <view class="empty-hint">在站点详情页轻点星标即可收藏</view>
+      <button class="btn btn-primary" bindtap="goToSearch">
+        搜索并添加
       </button>
     </view>
 
@@ -26,26 +45,27 @@
       <view
         wx:for="{{favorites}}"
         wx:key="id"
-        class="favorite-item card"
+        class="favorite-item surface"
         bindtap="viewStopDetail"
         data-stop-id="{{item.id}}"
       >
-        <view class="favorite-content">
-          <view class="stop-icon">📍</view>
-          <view class="stop-info">
-            <view class="stop-name">{{item.name}}</view>
-            <view class="stop-address">{{item.address}}</view>
+        <view class="favorite-info">
+          <view class="favorite-icon">📍</view>
+          <view class="favorite-text">
+            <view class="favorite-name">{{item.name}}</view>
+            <view class="favorite-address">{{item.address}}</view>
           </view>
         </view>
         <view class="favorite-actions">
           <view
-            class="delete-btn"
+            class="favorite-delete"
             catchtap="deleteFavorite"
             data-stop-id="{{item.id}}"
             data-stop-name="{{item.name}}"
           >
             删除
           </view>
+          <text class="favorite-arrow">›</text>
         </view>
       </view>
     </view>
@@ -53,6 +73,6 @@
 
   <!-- 添加按钮 -->
   <view class="fab" bindtap="goToSearch">
-    <text>+</text>
+    <text>＋</text>
   </view>
 </view>

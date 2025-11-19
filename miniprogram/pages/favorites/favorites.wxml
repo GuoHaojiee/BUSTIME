@@ -1,28 +1,39 @@
 <!--pages/favorites/favorites.wxml-->
-<view class="container">
-  <!-- 头部操作栏 -->
-  <view wx:if="{{favorites.length > 0}}" class="header-actions">
-    <view class="action-left">
-      <text class="favorites-count">共 {{favorites.length}} 个收藏</text>
+<view class="container favorites-screen">
+  <!-- 头部 -->
+  <view class="favorites-hero glass-card">
+    <view class="hero-top">
+      <view>
+        <view class="hero-label">收藏站点</view>
+        <view class="hero-count">{{favorites.length}}</view>
+      </view>
+      <view class="hero-actions">
+        <text class="action-btn" bindtap="toggleEdit">
+          {{isEditing ? '完成' : '编辑'}}
+        </text>
+        <text
+          wx:if="{{isEditing && favorites.length > 0}}"
+          class="action-btn danger"
+          bindtap="clearAllFavorites"
+        >
+          清空
+        </text>
+      </view>
     </view>
-    <view class="action-right">
-      <text class="action-btn" bindtap="toggleEdit">
-        {{isEditing ? '完成' : '编辑'}}
-      </text>
-      <text wx:if="{{isEditing}}" class="action-btn danger" bindtap="clearAllFavorites">
-        清空
-      </text>
+    <view class="hero-subtitle">
+      常用站点会在这里集合，单手即可查看与管理
+    </view>
+    <view class="hero-cta" bindtap="goToSearch">
+      <text>＋ 添加新的站点</text>
     </view>
   </view>
 
   <!-- 空状态 -->
-  <view wx:if="{{favorites.length === 0}}" class="empty-state">
+  <view wx:if="{{favorites.length === 0}}" class="empty-state inline-card">
     <view class="empty-icon">⭐</view>
     <view class="empty-text">还没有收藏任何站点</view>
     <view class="empty-hint">在站点详情页点击星标即可收藏</view>
-    <button class="btn btn-primary mt-20" bindtap="goToSearch">
-      搜索站点
-    </button>
+    <button class="btn btn-primary" bindtap="goToSearch">去搜索</button>
   </view>
 
   <!-- 收藏列表 -->
@@ -32,28 +43,27 @@
       wx:key="id"
       class="favorite-item card {{isEditing ? 'editing' : ''}}"
     >
-      <view class="item-content" bindtap="viewStopDetail" data-stop="{{item}}">
-        <view class="stop-icon">📍</view>
-        <view class="stop-info">
-          <view class="stop-name">{{item.name}}</view>
-          <view class="stop-address">{{item.address}}</view>
-          <view wx:if="{{item.addedAt}}" class="added-time">
+      <view class="favorite-main" bindtap="viewStopDetail" data-stop="{{item}}">
+        <view class="favorite-icon">📍</view>
+        <view class="favorite-info">
+          <view class="favorite-name">{{item.name}}</view>
+          <view class="favorite-address">{{item.address}}</view>
+          <view wx:if="{{item.addedAt}}" class="favorite-added">
             收藏于 {{item.addedAt}}
           </view>
         </view>
-        <view class="arrow-icon">›</view>
       </view>
-
-      <!-- 编辑模式下的删除按钮 -->
-      <view wx:if="{{isEditing}}" class="item-actions">
+      <view class="favorite-tail">
         <view
-          class="delete-btn"
+          wx:if="{{isEditing}}"
+          class="delete-chip"
           catchtap="deleteFavorite"
           data-stop-id="{{item.id}}"
           data-stop-name="{{item.name}}"
         >
           删除
         </view>
+        <text wx:else class="favorite-arrow">›</text>
       </view>
     </view>
   </view>

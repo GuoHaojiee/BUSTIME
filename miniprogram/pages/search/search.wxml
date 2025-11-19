@@ -1,10 +1,8 @@
 <!--pages/search/search.wxml-->
-<view class="container">
+<view class="container search-screen">
   <!-- 搜索栏 -->
-  <view class="search-bar">
-    <view class="search-back" bindtap="goBack">
-      <text>←</text>
-    </view>
+  <view class="search-bar glass-card">
+    <view class="search-back" bindtap="goBack">⌦</view>
     <view class="search-input-wrapper">
       <input
         class="search-input"
@@ -15,77 +13,75 @@
         bindconfirm="onSearch"
         focus="{{true}}"
       />
-      <view wx:if="{{keyword}}" class="clear-btn" bindtap="clearInput">
-        <text>×</text>
-      </view>
+      <view wx:if="{{keyword}}" class="clear-btn" bindtap="clearInput">×</view>
     </view>
-    <view class="search-btn" bindtap="onSearch">
-      <text>搜索</text>
-    </view>
+    <view class="search-btn" bindtap="onSearch">搜索</view>
   </view>
 
-  <!-- 加载状态 -->
-  <view wx:if="{{loading}}" class="loading">
-    <view class="loading-spinner"></view>
-    <text>搜索中...</text>
-  </view>
-
-  <!-- 搜索结果 -->
-  <view wx:elif="{{searched}}" class="search-results">
-    <!-- 无结果 -->
-    <view wx:if="{{searchResults.length === 0}}" class="empty-state">
-      <view class="empty-icon">🔍</view>
-      <view class="empty-text">未找到相关站点</view>
-      <view class="empty-hint">请尝试其他关键词</view>
+  <!-- 主体 -->
+  <view class="search-body">
+    <!-- 加载状态 -->
+    <view wx:if="{{loading}}" class="loading">
+      <view class="loading-spinner"></view>
+      <text>正在为你寻找站点...</text>
     </view>
 
-    <!-- 结果列表 -->
-    <view wx:else class="result-list">
-      <view
-        wx:for="{{searchResults}}"
-        wx:key="id"
-        class="result-item card"
-        bindtap="viewStopDetail"
-        data-stop="{{item}}"
-      >
-        <view class="result-icon">📍</view>
-        <view class="result-content">
-          <view class="result-name">{{item.name}}</view>
-          <view class="result-address">{{item.address}}</view>
-        </view>
-        <view class="result-arrow">›</view>
+    <!-- 搜索结果 -->
+    <view wx:elif="{{searched}}" class="search-results">
+      <view wx:if="{{searchResults.length === 0}}" class="empty-state inline-card">
+        <view class="empty-icon">🔍</view>
+        <view class="empty-text">没有匹配的站点</view>
+        <view class="empty-hint">检查关键词或尝试更短的名称</view>
       </view>
-    </view>
-  </view>
 
-  <!-- 搜索历史和建议 -->
-  <view wx:else class="search-suggestions">
-    <!-- 搜索历史 -->
-    <view wx:if="{{searchHistory.length > 0}}" class="history-section">
-      <view class="section-header">
-        <text class="section-title">搜索历史</text>
-        <text class="clear-history" bindtap="clearHistory">清空</text>
-      </view>
-      <view class="history-list">
+      <view wx:else class="result-list">
         <view
-          wx:for="{{searchHistory}}"
-          wx:key="timestamp"
-          class="history-item"
-          bindtap="onHistoryClick"
-          data-keyword="{{item.keyword}}"
+          wx:for="{{searchResults}}"
+          wx:key="id"
+          class="result-item card"
+          bindtap="viewStopDetail"
+          data-stop="{{item}}"
         >
-          <text class="history-icon">🕐</text>
-          <text class="history-keyword">{{item.keyword}}</text>
+          <view class="result-icon">📍</view>
+          <view class="result-content">
+            <view class="result-name">{{item.name}}</view>
+            <view class="result-address">{{item.address}}</view>
+          </view>
+          <view class="result-arrow">›</view>
         </view>
       </view>
     </view>
 
-    <!-- 搜索提示 -->
-    <view class="search-tips">
-      <view class="tip-title">搜索提示</view>
-      <view class="tip-item">• 输入俄文站点名称进行搜索</view>
-      <view class="tip-item">• 支持模糊搜索</view>
-      <view class="tip-item">• 至少输入2个字符</view>
+    <!-- 搜索历史和建议 -->
+    <view wx:else class="search-suggestions">
+      <view class="suggestion-card card">
+        <view class="section-heading">搜索历史</view>
+        <view wx:if="{{searchHistory.length > 0}}" class="history-list">
+          <view
+            wx:for="{{searchHistory}}"
+            wx:key="timestamp"
+            class="history-item"
+            bindtap="onHistoryClick"
+            data-keyword="{{item.keyword}}"
+          >
+            <text class="history-icon">🕘</text>
+            <text class="history-keyword">{{item.keyword}}</text>
+          </view>
+          <view class="history-actions">
+            <text class="clear-history" bindtap="clearHistory">清空历史</text>
+          </view>
+        </view>
+        <view wx:else class="history-empty text-secondary">
+          暂无历史记录
+        </view>
+      </view>
+
+      <view class="tips-card inline-card">
+        <view class="tip-title">提示</view>
+        <view class="tip-item">• 支持俄文 / 中文 / 英文</view>
+        <view class="tip-item">• 至少输入 2 个字符</view>
+        <view class="tip-item">• 输入站点附近地标也可</view>
+      </view>
     </view>
   </view>
 </view>
