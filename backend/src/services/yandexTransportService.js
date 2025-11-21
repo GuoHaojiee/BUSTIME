@@ -16,6 +16,11 @@ class YandexTransportService {
     this.isInitializing = false;
     this.networkQueriesCount = 0;
     this.maxQueriesBeforeRestart = 100; // 执行100次查询后重启浏览器
+    this.sharedPage = null;
+    this.sharedPageInitializing = null;
+    this.sharedPageInUse = false;
+    this.sharedPageLastWarmup = 0;
+    this.sharedPageTtl = 10 * 60 * 1000; // 10分钟刷新共享页面
   }
 
   /**
@@ -72,6 +77,9 @@ class YandexTransportService {
       await this.browser.close();
       this.browser = null;
     }
+    this.sharedPage = null;
+    this.sharedPageInitializing = null;
+    this.sharedPageInUse = false;
     this.networkQueriesCount = 0;
     await this.initialize();
   }
@@ -237,6 +245,146 @@ class YandexTransportService {
   }
 
   /**
+   * 共享页面：用于快速直接调用 Yandex API
+   */
+  async getSharedPage() {
+    const browser = await this.initialize();
+
+    if (this.sharedPage && !this.sharedPage.isClosed()) {
+      const needRefresh = Date.now() - this.sharedPageLastWarmup > this.sharedPageTtl;
+      if (needRefresh) {
+        await this.refreshSharedPage();
+      }
+      return this.sharedPage;
+    }
+
+    if (this.sharedPageInitializing) {
+      await this.sharedPageInitializing;
+      return this.sharedPage;
+    }
+
+    this.sharedPageInitializing = (async () => {
+      const page = await browser.newPage();
+      await page.setRequestInterception(true);
+      page.on('request', (request) => {
+        const resourceType = request.resourceType();
+        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+          request.abort();
+        } else {
+          request.continue();
+        }
+      });
+
+      page.on('close', () => {
+        this.sharedPage = null;
+        this.sharedPageInUse = false;
+      });
+
+      await page.goto('https://yandex.ru/maps/213/moscow/', {
+        waitUntil: 'domcontentloaded',
+        timeout: 45000
+      });
+
+      this.sharedPage = page;
+      this.sharedPageLastWarmup = Date.now();
+    })();
+
+    try {
+      await this.sharedPageInitializing;
+      return this.sharedPage;
+    } finally {
+      this.sharedPageInitializing = null;
+    }
+  }
+
+  async refreshSharedPage() {
+    if (!this.sharedPage || this.sharedPage.isClosed()) {
+      return;
+    }
+
+    logger.info('刷新共享页面以保持会话有效');
+    try {
+      await this.sharedPage.goto('https://yandex.ru/maps/213/moscow/', {
+        waitUntil: 'domcontentloaded',
+        timeout: 45000
+      });
+      this.sharedPageLastWarmup = Date.now();
+    } catch (error) {
+      logger.warn('刷新共享页面失败，重新创建页面', error);
+      try {
+        await this.sharedPage.close();
+      } catch (closeError) {
+        logger.warn('关闭失效的共享页面失败', closeError);
+      }
+      this.sharedPage = null;
+    }
+  }
+
+  async runWithSharedPage(task) {
+    // 简单互斥，避免并发复用导致 evaluate 互相影响
+    while (this.sharedPageInUse) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    this.sharedPageInUse = true;
+
+    try {
+      const page = await this.getSharedPage();
+      return await task(page);
+    } catch (error) {
+      // 如果页面已崩溃，下次重新初始化
+      if (this.sharedPage && this.sharedPage.isClosed()) {
+        this.sharedPage = null;
+      }
+      throw error;
+    } finally {
+      this.sharedPageInUse = false;
+    }
+  }
+
+  /**
+   * 解析页面中的 Token（通过 HTML 内容）
+   */
+  async extractTokens(page) {
+    try {
+      return await page.evaluate(() => {
+        const html = document.documentElement.innerHTML;
+        const extract = (key) => {
+          const regex = new RegExp(`\\"${key}\\":\\"([^\\"]+)\\"`);
+          const match = html.match(regex);
+          return match ? match[1] : null;
+        };
+
+        return {
+          csrfToken: extract('csrfToken'),
+          xcsrfToken: extract('xscriptCsrfToken'),
+          msid: extract('msid')
+        };
+      });
+    } catch (error) {
+      logger.warn('解析页面 Token 失败', error.message);
+      return null;
+    }
+  }
+
+  async waitForTokens(page, timeout = 20000) {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      const tokens = await this.extractTokens(page);
+      logger.info('Token 探测', {
+        hasTokens: !!tokens,
+        hasCsrf: !!(tokens && tokens.csrfToken)
+      });
+      if (tokens && tokens.csrfToken) {
+        return tokens;
+      }
+      await page.waitForTimeout(500);
+    }
+
+    logger.warn('等待 Token 超时，可能遇到 CAPTCHA 页面');
+    return null;
+  }
+
+  /**
    * 转换 Yandex API 方法名为本地 API 方法名
    */
   yandexApiToLocalApi(method) {
@@ -259,6 +407,186 @@ class YandexTransportService {
   }
 
   /**
+   * 直接在页面上下文调用 Yandex masstransit API，以避免 30s 的被动等待
+   */
+  async fetchStopInfoViaDirectApi(stopId) {
+    logger.info(`尝试直接调用 Yandex API 获取站点信息: ${stopId}`);
+
+    const stopUrl = `https://yandex.ru/maps/213/moscow/stops/${stopId}/`;
+
+    const executeFetch = async (page, tokens) => {
+      if (!tokens || !tokens.csrfToken) {
+        return { error: 'NO_CSRF_TOKEN' };
+      }
+
+      return await page.evaluate(async ({ stopId, tokens }) => {
+        const query = new URLSearchParams({
+          ajax: '1',
+          lang: 'ru_RU',
+          csrfToken: tokens.csrfToken
+        });
+
+        if (tokens.msid) {
+          query.append('msid', tokens.msid);
+        }
+
+        const requestBody = {
+          id: stopId,
+          retainMissedTransports: true,
+          skipSchedule: false,
+          showScheduledArrivalTimes: true
+        };
+
+        const response = await fetch(`https://yandex.ru/maps/api/masstransit/getStopInfo?${query.toString()}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(requestBody),
+          credentials: 'include'
+        }).catch(error => ({ error: error.message }));
+
+        if (!response) {
+          return { error: 'NO_RESPONSE' };
+        }
+
+        if (response.error) {
+          return { error: response.error };
+        }
+
+        const text = await response.text();
+
+        return {
+          status: response.status,
+          ok: response.ok,
+          text
+        };
+      }, { stopId, tokens });
+    };
+
+    try {
+      const payload = await this.runWithSharedPage(async (page) => {
+        await page.goto(stopUrl, {
+          waitUntil: 'domcontentloaded',
+          timeout: 45000
+        });
+
+        const tokens = await this.waitForTokens(page);
+        if (!tokens) {
+          return { error: 'NO_CSRF_TOKEN' };
+        }
+
+        let directPayload = await executeFetch(page, tokens);
+
+        if (!directPayload || directPayload.error === 'NO_CSRF_TOKEN') {
+          logger.warn('共享页面缺少 CSRF Token，刷新后重试');
+          await this.refreshSharedPage();
+          const refreshedPage = await this.getSharedPage();
+          await refreshedPage.goto(stopUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: 45000
+          });
+          const refreshedTokens = await this.waitForTokens(refreshedPage);
+          if (!refreshedTokens) {
+            return { error: 'NO_CSRF_TOKEN' };
+          }
+          directPayload = await executeFetch(refreshedPage, refreshedTokens);
+        }
+
+        return directPayload;
+      });
+
+      if (!payload || payload.error) {
+        logger.warn(`直接 API 调用失败: ${payload?.error || 'UNKNOWN_ERROR'}`);
+        return null;
+      }
+
+      if (!payload.ok) {
+        logger.warn(`直接 API 响应状态异常: ${payload.status}`);
+        return null;
+      }
+
+      try {
+        const parsed = JSON.parse(payload.text);
+        return parsed;
+      } catch (error) {
+        logger.warn('直接 API 返回内容解析失败', error);
+        return null;
+      }
+    } catch (error) {
+      logger.warn('直接调用 Yandex API 过程中出现异常', error);
+      return null;
+    }
+  }
+
+  /**
+   * 通过 SSR 注入的 state-view JSON 直接解析站点信息
+   * 该方法不依赖 30 秒的被动等待，也不需要猜测 API 签名
+   */
+  async fetchStopInfoViaStateView(stopId) {
+    logger.info(`尝试通过 state-view JSON 获取站点信息: ${stopId}`);
+
+    const stopUrl = `https://yandex.ru/maps/213/moscow/stops/${stopId}/?mode=masstransit`;
+
+    try {
+      const result = await this.runWithSharedPage(async (page) => {
+        await page.goto(stopUrl, {
+          waitUntil: 'domcontentloaded',
+          timeout: 45000
+        });
+
+        // state-view 脚本在 SSR HTML 中同步注入，等待其出现
+        await page.waitForSelector('script.state-view', { timeout: 15000 });
+
+        const stateJson = await page.$eval('script.state-view', el => el.textContent || el.innerText || '');
+
+        if (!stateJson) {
+          logger.warn('state-view 脚本为空');
+          return null;
+        }
+
+        let parsedState;
+        try {
+          parsedState = JSON.parse(stateJson);
+        } catch (error) {
+          logger.warn('解析 state-view JSON 失败', error.message);
+          return null;
+        }
+
+        const stopData = this.extractStopDataFromState(parsedState, stopId);
+        if (!stopData) {
+          logger.warn('state-view 中没有找到目标站点数据');
+          return null;
+        }
+
+        // parseStopInfo 期望的结构为 { data: {...} }
+        return this.parseStopInfo({ data: stopData }, stopId);
+      });
+
+      return result;
+    } catch (error) {
+      logger.warn('通过 state-view 获取站点信息失败', error.message);
+      return null;
+    }
+  }
+
+  extractStopDataFromState(state, stopId) {
+    if (!state || !state.stack || !Array.isArray(state.stack)) {
+      return null;
+    }
+
+    for (const entry of state.stack) {
+      const stopData = entry?.stops?.data;
+      if (stopData && stopData.id === stopId) {
+        return stopData;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * 获取站点信息（getStopInfo）
    */
   async getStopInfo(stopId) {
@@ -267,6 +595,22 @@ class YandexTransportService {
     const url = `https://yandex.ru/maps/213/moscow/stops/${stopId}/`;
 
     logger.info(`获取站点信息: ${stopId}`);
+
+    // 优先尝试解析 SSR 注入的数据
+    const stateViewData = await this.fetchStopInfoViaStateView(stopId);
+    if (stateViewData && stateViewData.arrivals && stateViewData.arrivals.length > 0) {
+      logger.info('state-view JSON 获取成功，直接返回结果');
+      return stateViewData;
+    }
+
+    // 优先尝试直接 API 调用，成功则可在 2-3 秒内返回
+    const directData = await this.fetchStopInfoViaDirectApi(stopId);
+    if (directData && directData.data) {
+      logger.info('直接 API 调用成功，返回结果');
+      return this.parseStopInfo(directData, stopId);
+    }
+
+    logger.warn('直接 API 调用失败，回退到旧的网络捕获方案');
 
     const result = await this._getYandexJson(url, ['maps/api/masstransit/getStopInfo']);
 
@@ -447,6 +791,15 @@ class YandexTransportService {
    * 关闭浏览器
    */
   async close() {
+    if (this.sharedPage && !this.sharedPage.isClosed()) {
+      try {
+        await this.sharedPage.close();
+      } catch (error) {
+        logger.warn('关闭共享页面失败', error);
+      }
+      this.sharedPage = null;
+    }
+
     if (this.browser) {
       logger.info('正在关闭浏览器...');
       await this.browser.close();
